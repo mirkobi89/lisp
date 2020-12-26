@@ -20,8 +20,10 @@
   (or (gethash graph-id *graphs*)
       (setf (gethash graph-id *graphs*) graph-id)))
 
-;;(defun delete-graph (graph-id)
-;;(remhash (list 'vertex graph-id vertex-id) *vertices*))
+(defun delete-graph (graph-id)
+  (let ((result (graph-vertices graph-id)))
+    (print result))
+  )
 
 (defun new-vertex (graph-id vertex-id)
   (setf (gethash (list 'vertex graph-id vertex-id)
@@ -37,10 +39,10 @@
 	 )
         ((loop-l (rest lista) graph-id)))
   )
-
+;;NON TOCCARE
 (defun graph-vertices (graph-id)
-  (let (l (collect-hash-table *vertices*)))
-  (loop-l l graph-id)
+  (let ((l (collect-hash-table *vertices*)))
+  (loop-l l graph-id))
   v-list
 )
 
