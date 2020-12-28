@@ -10,11 +10,6 @@
 
 (defparameter *previous* (make-hash-table :test #'equal))
 
-(defparameter tmp-list '())
-
-(defun print-graphs()
-  (maphash (lambda (k v)(format t "Key: ~S, value: ~S ~%" k v)) *graphs*))
-
 (defun is-graph (graph-id)()
   (gethash graph-id *graphs*))
 
@@ -22,58 +17,46 @@
   (or (gethash graph-id *graphs*)
       (setf (gethash graph-id *graphs*) graph-id)))
 
-(defun delete-graph (graph-id)
-  (let ((result (graph-vertices graph-id)))
-    (rem-f-ht result)))
-
 (defun new-vertex (graph-id vertex-id)
   (setf (gethash (list 'vertex graph-id vertex-id)
 		 *vertices*)
 	(list 'vertex graph-id vertex-id)))
 
-
-(defun loop-l (lista graph-id)
-  (cond ((null lista) nil)
-	((eql graph-id (nth 1 (first lista)))
-	 (push (first lista) tmp-list)
-	 (loop-l (rest lista) graph-id)
-	 )
-        ((loop-l (rest lista) graph-id)))
-  )
-
-(defun rem-f-ht (lista)
-  (cond ((null lista) nil)
-	(t (remhash (first lista) *vertices*)
-	   (rem-f-ht (rest lista))))
-)
-;;NON TOCCARE
-;(defun graph-vertices (graph-id)
- ; (let ((l (collect-hash-table *vertices*)))
-  ;(loop-l l graph-id))
-  ;v-list)
-
-(defun graph-vertices (graph-id)
-  (setf tmp-list nil)
-   (let ((l (collect-hash-table *vertices*)))
-     (loop-l l graph-id))
-  tmp-list)
-
-
-(defun collect-hash-table (ht)
-  (let (kvs)
-  (maphash #'(lambda (k v) (push k kvs)) ht)
-  kvs))
-
 (defun new-arc (graph-id vertex-id-1 vertex-id-2 &optional (weight 1))
-  (setf tmp-list nil)
   (setf (gethash (list 'arc graph-id vertex-id-1 vertex-id-2 weight)
 		 *arcs*)
 	(list 'arc graph-id vertex-id-1 vertex-id-2 weight)))
 
-(defun graph-arcs (graph-id)
-  (setf tmp-list nil)
-  (let ((l (collect-hash-table *arcs*)))
-    (loop-l l graph-id))
-  tmp-list)
+;(defun graph-print(graph-id)
+ ; (print (graph-vertices graph-id))
+  ;(print (graph-arcs graph-id)))
 
-;;(defun graph-vertex-neighbors(graph-id vertex-id))
+(defun appartiene (lista graph-id &optional (vertex-id nil))
+  (if (null vertex-id)
+      (if (eql graph-id (second lista))
+	 (return-from appartiene T))
+      nil)
+  (if (and(eql graph-id (second lista))
+	  (eql vertex-id (third lista)))
+      (return-from appartiene T))
+  nil)
+
+(defun collect-hash-table (ht graph-id &optional (vertex-id nil))
+    (let ((kvs ()))
+      (maphash #'(lambda (k v)(when (appartiene v graph-id vertex-id)(push k kvs))) ht)
+      ;;(maphash #'(lambda (k v)(when (eql v '(vertex g2 x))(gethash k ht))) ht))
+      kvs))
+
+(defun delete-graph (graph-id)
+  (remhash graph-id *graphs*)
+  (maphash #'(lambda (k v) (when (appartiene v graph-id) (remhash k *vertices*))) *vertices*))
+
+(defun graph-vertices(graph-id)
+  (funcall 'collect-hash-table *vertices* graph-id))
+
+(defun graph-arcs(graph-id)
+  (funcall 'collect-hash-table *arcs* graph-id))
+
+(defun graph-vertex-neighbors (graph-id vertex-id)
+  (funcall 'collect-hash-table *arcs* graph-id vertex-id))
+  
